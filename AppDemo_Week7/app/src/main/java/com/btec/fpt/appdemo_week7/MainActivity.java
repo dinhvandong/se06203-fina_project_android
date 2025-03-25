@@ -18,87 +18,59 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+
+import android.os.Bundle;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+
+import com.btec.fpt.appdemo_week7.fragments.AddExpenseFragment;
+import com.btec.fpt.appdemo_week7.fragments.ChartFragment;
+import com.btec.fpt.appdemo_week7.fragments.HistoryFragment;
+import com.btec.fpt.appdemo_week7.fragments.HomeFragment;
+import com.btec.fpt.appdemo_week7.fragments.SettingsFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-        Button btnClick = (Button) findViewById(R.id.btn_click);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Inflate the custom layout
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.custom_toast, null);
+        // Load the Home fragment by default
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new HomeFragment())
+                    .commit();
+        }
 
-// Find UI elements and customize
-        ImageView toastIcon = layout.findViewById(R.id.toast_icon);
-        TextView toastText = layout.findViewById(R.id.toast_text);
+        // Handle bottom navigation item clicks
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
 
-        //toastIcon.setImageResource(R.drawable.ic_success); // Set icon
-        toastText.setText("This is a custom Toast!"); // Set message
-
-// Create and show the Toast
-        Toast toast = new Toast(getApplicationContext());
-        toast.setDuration(Toast.LENGTH_SHORT);
-        toast.setView(layout);
-
-     final Dialog dialog = new AlertDialog.Builder(MainActivity.this)
-             .setTitle("Confirmation")
-             .setMessage("Are you sure you want to proceed?")
-             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                 @Override
-                 public void onClick(DialogInterface dialog, int which) {
-                     Toast.makeText(MainActivity.this, "Confirmed!", Toast.LENGTH_SHORT).show();
-                 }
-             })
-             .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                 @Override
-                 public void onClick(DialogInterface dialog, int which) {
-                     dialog.dismiss();
-                 }
-             }).create();
-
-        btnClick.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               // Toast.makeText(getApplicationContext(),"Click me", Toast.LENGTH_LONG).show();
-              // toast.show();
-              //  dialog.show();
-
-                showCustomDialog();
-
-
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                selectedFragment = new HomeFragment();
+            } else if (itemId == R.id.nav_chart) {
+                selectedFragment = new ChartFragment();
+            } else if (itemId == R.id.nav_add_expense) {
+                selectedFragment = new AddExpenseFragment();
+            } else if (itemId == R.id.nav_history) {
+                selectedFragment = new HistoryFragment();
+            } else if (itemId == R.id.nav_settings) {
+                selectedFragment = new SettingsFragment();
             }
+
+            if (selectedFragment != null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, selectedFragment)
+                        .commit();
+            }
+
+            return true;
         });
-    }
-
-
-
-    private void showCustomDialog() {
-        Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.custom_dialog);
-        dialog.setCancelable(true);
-
-        // Initialize UI elements
-        TextView title = dialog.findViewById(R.id.dialog_title);
-        EditText message = dialog.findViewById(R.id.dialog_input);
-        Button closeButton = dialog.findViewById(R.id.dialog_ok_button);
-
-        // Set data dynamically if needed
-        title.setText("Hello!");
-        message.setText("This is a custom dialog example.");
-
-        // Handle button click
-        closeButton.setOnClickListener(v -> dialog.dismiss());
-
-        // Show the dialog
-        dialog.show();
     }
 }
