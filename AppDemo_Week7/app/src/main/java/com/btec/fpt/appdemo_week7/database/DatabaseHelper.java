@@ -9,6 +9,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.btec.fpt.appdemo_week7.models.User;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "UserDatabase.db";
@@ -34,6 +37,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+
+    public boolean checkUser(String email, String enteredPassword) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT password FROM users WHERE email=?", new String[]{email});
+
+        if (cursor.moveToFirst()) {
+            String storedHash = cursor.getString(0);
+            cursor.close();
+            // Compare entered password (hashed) with stored hash
+            return storedHash.equals(hashPassword(enteredPassword));
+        }
+
+        cursor.close();
+        return false;
+    }
+
+
+    // Hash password using SHA-256
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                hexString.append(String.format("%02x", b));
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_USERS);
@@ -45,19 +80,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // Insert user
+    // Insert user with hashed password
     public boolean insertUser(User user) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
+
+        // Hash the password before storing it
+        String hashedPassword = hashPassword(user.getPassword());
+
         values.put(COLUMN_EMAIL, user.getEmail());
-        values.put(COLUMN_PASSWORD, user.getPassword());
+        values.put(COLUMN_PASSWORD, hashedPassword); // Store hashed password
         values.put(COLUMN_FULLNAME, user.getFullName());
         values.put(COLUMN_BIRTHDAY, user.getBirthday());
         values.put(COLUMN_SEX, user.getSex());
 
         long result = db.insert(TABLE_USERS, null, values);
+        db.close();
+
         return result != -1; // Returns true if insertion is successful
     }
+
 
     // Check if email exists
     public boolean isEmailExists(String email) {
