@@ -109,7 +109,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // ✅ Hash password using SHA-256
-    private String hashPassword(String password) {
+    public String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(password.getBytes());

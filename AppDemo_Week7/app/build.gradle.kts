@@ -32,12 +32,36 @@ android {
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+
+    // Unit Testing
     testImplementation(libs.junit)
+
+    // Android Instrumented Testing
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    dependencies {
+        // AndroidX Core Libraries
+        implementation(libs.appcompat.v161)
+        implementation(libs.material.v190)
+        implementation(libs.activity.v180)
+        implementation(libs.constraintlayout.v214)
+
+        // Unit Testing (Runs on JVM)
+        testImplementation(libs.junit)
+
+        // Android Instrumented Testing (Runs on Emulator/Device)
+        androidTestImplementation(libs.junit.v115) // JUnit for AndroidX
+        androidTestImplementation(libs.espresso.core.v351) // Espresso UI Testing
+        androidTestImplementation(libs.core) // Provides ApplicationProvider
+
+        androidTestImplementation("androidx.test:core:1.5.0") // Required for ApplicationProvider
+        androidTestImplementation("androidx.test.ext:junit:1.1.5") // JUnit support for Android
+        androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1") // UI testing
+    }
+
 }
