@@ -1,7 +1,8 @@
 package com.btec.fpt.appdemo_week7;
 
+import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -22,7 +23,11 @@ public class LoginActivity extends AppCompatActivity {
     TextView registerText;
     EditText etEmail, etPassword;
     Button btnLogin;
-    DatabaseHelper dbHelper; // SQLite Helper instance
+    DatabaseHelper dbHelper;
+    SharedPreferences sharedPreferences;
+    private static final String PREF_NAME = "LoginPrefs";
+    private static final String KEY_EMAIL = "email";
+    private static final String KEY_PASSWORD = "password";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +48,18 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.passwordEditText);
         btnLogin = findViewById(R.id.loginButton);
 
-        // Initialize Database Helper
         dbHelper = new DatabaseHelper(this);
+        sharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+
+        // Auto-login if credentials exist
+        if (sharedPreferences.contains(KEY_EMAIL) && sharedPreferences.contains(KEY_PASSWORD)) {
+            String savedEmail = sharedPreferences.getString(KEY_EMAIL, "");
+            String savedPassword = sharedPreferences.getString(KEY_PASSWORD, "");
+
+            if (dbHelper.checkUser(savedEmail, savedPassword)) {
+                navigateToHome();
+            }
+        }
 
         // Open Register Activity
         registerText.setOnClickListener(v -> {
@@ -57,22 +72,30 @@ public class LoginActivity extends AppCompatActivity {
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
-            // Validate input fields
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(LoginActivity.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
             } else {
-                // Check if user exists
                 if (dbHelper.checkUser(email, password)) {
                     Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
-
-                    // Navigate to Home Activity (Replace `HomeActivity.class` with your actual main activity)
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
+                    saveLoginCredentials(email, password);
+                    navigateToHome();
                 } else {
                     Toast.makeText(LoginActivity.this, "Invalid email or password", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private void saveLoginCredentials(String email, String password) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(KEY_EMAIL, email);
+        editor.putString(KEY_PASSWORD, password);
+        editor.apply();
+    }
+
+    private void navigateToHome() {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }
